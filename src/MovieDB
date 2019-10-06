@@ -1,0 +1,44 @@
+Create table If Not Exists Players (player_id int, group_id int)
+Create table If Not Exists Matches (match_id int, first_player int, second_player int, first_score int, second_score int)
+Truncate table Players
+insert into Players (player_id, group_id) values ('10', '2')
+insert into Players (player_id, group_id) values ('15', '1')
+insert into Players (player_id, group_id) values ('20', '3')
+insert into Players (player_id, group_id) values ('25', '1')
+insert into Players (player_id, group_id) values ('30', '1')
+insert into Players (player_id, group_id) values ('35', '2')
+insert into Players (player_id, group_id) values ('40', '3')
+insert into Players (player_id, group_id) values ('45', '1')
+insert into Players (player_id, group_id) values ('50', '2')
+Truncate table Matches
+insert into Matches (match_id, first_player, second_player, first_score, second_score) values ('1', '15', '45', '3', '0')
+insert into Matches (match_id, first_player, second_player, first_score, second_score) values ('2', '30', '25', '1', '2')
+insert into Matches (match_id, first_player, second_player, first_score, second_score) values ('3', '30', '15', '2', '0')
+insert into Matches (match_id, first_player, second_player, first_score, second_score) values ('4', '40', '20', '5', '2')
+insert into Matches (match_id, first_player, second_player, first_score, second_score) values ('5', '35', '50', '1', '1')
+
+select group_id, player_id from (
+	select p.group_id, ps.player_id, sum(ps.score) as score from Players p,
+	    (select first_player as player_id, first_score as score from Matches
+	    union all
+	    select second_player, second_score from Matches) ps
+	where p.player_id = ps.player_id
+	group by ps.player_id order by group_id, score desc, player_id) top_scores
+group by group_id
+
+
+
+create table if not exists Transactions (id int, country varchar(4), state enum('approved', 'declined'), amount int, trans_date date)
+Truncate table Transactions
+insert into Transactions (id, country, state, amount, trans_date) values ('121', 'US', 'approved', '1000', '2018-12-18')
+insert into Transactions (id, country, state, amount, trans_date) values ('122', 'US', 'declined', '2000', '2018-12-19')
+insert into Transactions (id, country, state, amount, trans_date) values ('123', 'US', 'approved', '2000', '2019-01-01')
+insert into Transactions (id, country, state, amount, trans_date) values ('124', 'DE', 'approved', '2000', '2019-01-07')
+
+select to_char(trans_date, 'YYYY-MM') as month, country,
+    count(1) as trans_count,
+    sum(case when state = 'approved' then 1 else 0 end) as approved_count,
+    sum(amount) as trans_total_amount,
+    sum(case when state = 'approved' then amount else 0 end) as approved_total_amount
+from Transactions
+group by country, to_char(trans_date, 'YYYY-MM')
